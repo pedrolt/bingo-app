@@ -38,6 +38,62 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
+}
+
+/* ==========================================
+   Voice Toggle Button
+   ========================================== */
+
+.voice-toggle {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Botones de voz */
+.voice-toggle, .voice-test {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  margin-left: 8px;
+  background: rgba(255,255,255,0.08);
+  color: var(--text-primary);
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 0.5rem 0.8rem;
+  border-radius: 8px;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  font-weight: bold;
+}
+
+.voice-test {
+  right: 120px; /* colocar a la izquierda del toggle */
+}
+
+.voice-toggle:hover, .voice-test:hover {
+  transform: translateY(-2px);
+}
+
+.voice-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.voice-toggle:active {
+  transform: scale(0.95);
 }
 
 /* ==========================================

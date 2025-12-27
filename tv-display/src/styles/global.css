@@ -1,0 +1,392 @@
+/* ==========================================
+   🎱 Bingo TV Display - Global Styles
+   ========================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg-primary: #1a1a2e;
+  --bg-secondary: #16213e;
+  --accent: #e94560;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+  --success: #2a9d8f;
+  --warning: #f4a261;
+  
+  --ball-B: #e63946;
+  --ball-I: #f4a261;
+  --ball-N: #2a9d8f;
+  --ball-G: #264653;
+  --ball-O: #9b5de5;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.app {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ==========================================
+   Waiting Room
+   ========================================== */
+
+.waiting-room {
+  text-align: center;
+  padding: 2rem;
+}
+
+.title {
+  font-size: 5rem;
+  margin-bottom: 2rem;
+  text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+}
+
+.status.connecting {
+  font-size: 1.5rem;
+  color: var(--warning);
+  animation: pulse 1.5s infinite;
+}
+
+.btn-create, .btn-start, .btn-new-game {
+  font-size: 1.5rem;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  margin-top: 1rem;
+}
+
+.btn-create {
+  background: linear-gradient(135deg, var(--accent), #ff6b6b);
+  color: white;
+}
+
+.btn-start {
+  background: linear-gradient(135deg, var(--success), #3dd5c8);
+  color: white;
+}
+
+.btn-create:hover, .btn-start:hover, .btn-new-game:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.game-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.game-code {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.game-code .label {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+}
+
+.game-code .code {
+  font-size: 4rem;
+  font-weight: bold;
+  letter-spacing: 0.5rem;
+  color: var(--accent);
+  text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+}
+
+.qr-container {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+.qr-hint {
+  margin-top: 1rem;
+  color: var(--bg-primary);
+  font-weight: bold;
+}
+
+.players-count {
+  font-size: 2rem;
+}
+
+/* ==========================================
+   Game Board
+   ========================================== */
+
+.game-board {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  width: 100%;
+  height: 100%;
+  padding: 2rem;
+}
+
+.left-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.right-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Drum Animation */
+.drum-container {
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drum {
+  width: 150px;
+  height: 150px;
+  border: 5px solid var(--accent);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.drum-inner {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.drum-ball {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 1.5rem;
+}
+
+.btn-call {
+  font-size: 2rem;
+  padding: 1rem 3rem;
+  background: linear-gradient(135deg, var(--accent), #ff6b6b);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 5px 20px rgba(233, 69, 96, 0.4);
+}
+
+.btn-call:hover {
+  transform: scale(1.05);
+}
+
+.btn-call:active {
+  transform: scale(0.95);
+}
+
+.numbers-called-count {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+}
+
+/* ==========================================
+   Bingo Ball
+   ========================================== */
+
+.bingo-ball {
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, white, var(--ball-color));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 10px 30px rgba(0,0,0,0.3),
+    inset 0 -5px 20px rgba(0,0,0,0.2);
+}
+
+.ball-normal {
+  width: 60px;
+  height: 60px;
+}
+
+.ball-large {
+  width: 180px;
+  height: 180px;
+}
+
+.ball-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 50%;
+  width: 60%;
+  height: 60%;
+}
+
+.ball-letter {
+  font-weight: bold;
+  color: var(--ball-color);
+}
+
+.ball-large .ball-letter {
+  font-size: 2rem;
+}
+
+.ball-large .ball-number {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.ball-normal .ball-letter {
+  font-size: 0.8rem;
+}
+
+.ball-normal .ball-number {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+}
+
+/* ==========================================
+   Numbers Board
+   ========================================== */
+
+.numbers-board {
+  background: var(--bg-secondary);
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+.board-header {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.header-cell {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: bold;
+  padding: 0.5rem;
+  border-radius: 10px;
+}
+
+.header-B { background: var(--ball-B); }
+.header-I { background: var(--ball-I); }
+.header-N { background: var(--ball-N); }
+.header-G { background: var(--ball-G); }
+.header-O { background: var(--ball-O); }
+
+.board-body {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+}
+
+.board-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.board-cell {
+  width: 50px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.1);
+  border-radius: 5px;
+  font-size: 1rem;
+  transition: all 0.3s;
+}
+
+.board-cell.called {
+  background: var(--accent);
+  color: white;
+  font-weight: bold;
+  transform: scale(1.05);
+}
+
+/* ==========================================
+   Winner Screen
+   ========================================== */
+
+.winner-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, var(--bg-secondary), var(--bg-primary));
+}
+
+.winner-content {
+  text-align: center;
+}
+
+.winner-title {
+  font-size: 6rem;
+  margin-bottom: 2rem;
+  background: linear-gradient(135deg, #f4a261, #e63946, #9b5de5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.winner-name {
+  font-size: 4rem;
+  font-weight: bold;
+  color: var(--success);
+  margin-bottom: 1rem;
+}
+
+.winner-message {
+  font-size: 2rem;
+  color: var(--text-secondary);
+  margin-bottom: 3rem;
+}
+
+.btn-new-game {
+  background: linear-gradient(135deg, var(--accent), #ff6b6b);
+  color: white;
+}
+
+/* ==========================================
+   Animations
+   ========================================== */
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

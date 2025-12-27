@@ -1,0 +1,397 @@
+/* ==========================================
+   🎱 Bingo Mobile App - Styles
+   ========================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+  --bg-primary: #1a1a2e;
+  --bg-secondary: #16213e;
+  --accent: #e94560;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+  --success: #2a9d8f;
+  --warning: #f4a261;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  user-select: none;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==========================================
+   Join Screen
+   ========================================== */
+
+.join-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  gap: 2rem;
+}
+
+.logo {
+  text-align: center;
+}
+
+.logo-emoji {
+  font-size: 5rem;
+  display: block;
+  animation: bounce 2s infinite;
+}
+
+.logo h1 {
+  font-size: 3rem;
+  background: linear-gradient(135deg, var(--accent), var(--warning));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.status.connecting {
+  color: var(--warning);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.join-form {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.input-group label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.input-group input {
+  padding: 1rem;
+  font-size: 1.2rem;
+  border: 2px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.05);
+  color: var(--text-primary);
+  text-align: center;
+  transition: border-color 0.3s;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.input-code {
+  letter-spacing: 0.3rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.btn-join {
+  padding: 1rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 50px;
+  background: linear-gradient(135deg, var(--accent), #ff6b6b);
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.btn-join:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-join:not(:disabled):active {
+  transform: scale(0.95);
+}
+
+/* ==========================================
+   Waiting Screen
+   ========================================== */
+
+.waiting-screen {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.waiting-content {
+  text-align: center;
+}
+
+.waiting-content h2 {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.loader {
+  font-size: 4rem;
+  margin: 2rem 0;
+}
+
+.waiting-content p {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.waiting-content .hint {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* ==========================================
+   Card Screen
+   ========================================== */
+
+.card-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  gap: 1rem;
+}
+
+.current-number {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: radial-gradient(circle at 30% 30%, white, var(--number-color, var(--accent)));
+  border-radius: 50%;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+}
+
+.current-number .letter {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: var(--number-color, var(--accent));
+}
+
+.current-number .number {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #333;
+}
+
+/* ==========================================
+   Bingo Card
+   ========================================== */
+
+.bingo-card {
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  padding: 0.5rem;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  width: 100%;
+  max-width: 350px;
+}
+
+.card-header {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.card-header .header-cell {
+  padding: 0.5rem;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  border-radius: 8px;
+  color: white;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.card-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+.card-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.1);
+  border-radius: 8px;
+  font-size: 1.3rem;
+  font-weight: bold;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.card-cell.called {
+  background: rgba(233, 69, 96, 0.3);
+  border: 2px solid var(--accent);
+}
+
+.card-cell.marked {
+  background: var(--success);
+  color: white;
+}
+
+.card-cell.free {
+  background: var(--warning);
+  color: white;
+  font-size: 1.5rem;
+}
+
+.card-cell .mark {
+  position: absolute;
+  font-size: 2rem;
+  color: white;
+}
+
+/* ==========================================
+   Claim Buttons
+   ========================================== */
+
+.claim-buttons {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  max-width: 350px;
+}
+
+.btn-claim {
+  flex: 1;
+  padding: 1rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.btn-claim:active {
+  transform: scale(0.95);
+}
+
+.btn-line {
+  background: linear-gradient(135deg, var(--warning), #ffb347);
+  color: white;
+}
+
+.btn-bingo {
+  background: linear-gradient(135deg, var(--accent), #ff6b6b);
+  color: white;
+}
+
+.numbers-count {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* ==========================================
+   Modal
+   ========================================== */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: var(--bg-secondary);
+  padding: 2rem;
+  border-radius: 20px;
+  text-align: center;
+  max-width: 300px;
+  width: 100%;
+}
+
+.modal-content.winner-me {
+  background: linear-gradient(135deg, var(--success), #3dd5c8);
+}
+
+.modal-emoji {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.modal-content h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.modal-message {
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+  color: var(--text-secondary);
+}
+
+.winner-me .modal-message {
+  color: rgba(255,255,255,0.9);
+}
+
+.btn-modal-close {
+  padding: 0.8rem 2rem;
+  font-size: 1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 50px;
+  background: white;
+  color: var(--bg-primary);
+  cursor: pointer;
+}

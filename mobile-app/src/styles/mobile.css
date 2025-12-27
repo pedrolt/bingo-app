@@ -197,27 +197,21 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 80px;
-  height: 80px;
+  width: 70px;
+  height: 70px;
   background: radial-gradient(circle at 30% 30%, white, var(--number-color, var(--accent)));
   border-radius: 50%;
   box-shadow: 0 5px 20px rgba(0,0,0,0.3);
 }
 
-.current-number .letter {
-  font-size: 0.8rem;
-  font-weight: bold;
-  color: var(--number-color, var(--accent));
-}
-
 .current-number .number {
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: bold;
   color: #333;
 }
 
 /* ==========================================
-   Bingo Card
+   Bingo Card (Bingo 90: 3x9)
    ========================================== */
 
 .bingo-card {
@@ -226,70 +220,54 @@ body {
   padding: 0.5rem;
   box-shadow: 0 10px 40px rgba(0,0,0,0.3);
   width: 100%;
-  max-width: 350px;
+  max-width: 400px;
 }
 
-.card-header {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 4px;
-  margin-bottom: 4px;
-}
-
-.card-header .header-cell {
-  padding: 0.5rem;
-  text-align: center;
-  font-size: 1.5rem;
-  font-weight: bold;
-  border-radius: 8px;
-  color: white;
-}
-
-.card-body {
+.bingo-card-90 .card-body {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.card-row {
+.bingo-card-90 .card-row {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 4px;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 3px;
 }
 
-.card-cell {
+.bingo-card-90 .card-cell {
   aspect-ratio: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.1);
-  border-radius: 8px;
-  font-size: 1.3rem;
+  background: rgba(255,255,255,0.15);
+  border-radius: 6px;
+  font-size: 1rem;
   font-weight: bold;
   position: relative;
   cursor: pointer;
   transition: all 0.2s;
+  min-height: 38px;
 }
 
-.card-cell.called {
+.bingo-card-90 .card-cell.empty {
+  background: rgba(255,255,255,0.05);
+  cursor: default;
+}
+
+.bingo-card-90 .card-cell.called {
   background: rgba(233, 69, 96, 0.3);
   border: 2px solid var(--accent);
 }
 
-.card-cell.marked {
+.bingo-card-90 .card-cell.marked {
   background: var(--success);
   color: white;
 }
 
-.card-cell.free {
-  background: var(--warning);
-  color: white;
-  font-size: 1.5rem;
-}
-
-.card-cell .mark {
+.bingo-card-90 .card-cell .mark {
   position: absolute;
-  font-size: 2rem;
+  font-size: 1.5rem;
   color: white;
 }
 
@@ -301,7 +279,7 @@ body {
   display: flex;
   gap: 1rem;
   width: 100%;
-  max-width: 350px;
+  max-width: 400px;
 }
 
 .btn-claim {

@@ -1,7 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { BingoBall } from './BingoBall';
 import { NumbersBoard } from './NumbersBoard';
-import { getColumnLetter } from '../../../server/shared/constants.js';
 
 export function GameBoard({ gameData, onCallNumber }) {
   const { currentNumber, calledNumbers = [] } = gameData || {};
@@ -47,7 +46,7 @@ export function GameBoard({ gameData, onCallNumber }) {
         </button>
 
         <div className="numbers-called-count">
-          Números cantados: {calledNumbers.length} / 75
+          Números cantados: {calledNumbers.length} / 90
         </div>
       </div>
 

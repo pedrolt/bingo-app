@@ -276,58 +276,66 @@ body {
 }
 
 /* ==========================================
-   Numbers Board
+   Numbers Board (Bingo 90)
    ========================================== */
 
 .numbers-board {
   background: var(--bg-secondary);
   border-radius: 20px;
-  padding: 1.5rem;
+  padding: 1rem;
   box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .board-header {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 0.5rem;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 0.3rem;
   margin-bottom: 0.5rem;
 }
 
 .header-cell {
   text-align: center;
-  font-size: 2rem;
+  font-size: 0.8rem;
   font-weight: bold;
-  padding: 0.5rem;
-  border-radius: 10px;
+  padding: 0.3rem;
+  border-radius: 8px;
+  color: white;
 }
 
-.header-B { background: var(--ball-B); }
-.header-I { background: var(--ball-I); }
-.header-N { background: var(--ball-N); }
-.header-G { background: var(--ball-G); }
-.header-O { background: var(--ball-O); }
+/* Colores para las 9 columnas */
+.header-col-0 { background: #e63946; }
+.header-col-1 { background: #f4a261; }
+.header-col-2 { background: #2a9d8f; }
+.header-col-3 { background: #264653; }
+.header-col-4 { background: #9b5de5; }
+.header-col-5 { background: #00b4d8; }
+.header-col-6 { background: #e76f51; }
+.header-col-7 { background: #06d6a0; }
+.header-col-8 { background: #ffd166; color: #333; }
 
 .board-body {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 0.5rem;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 0.3rem;
 }
 
 .board-column {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.2rem;
 }
 
 .board-cell {
-  width: 50px;
-  height: 35px;
+  width: 40px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(255,255,255,0.1);
   border-radius: 5px;
-  font-size: 1rem;
+  font-size: 0.9rem;
   transition: all 0.3s;
 }
 

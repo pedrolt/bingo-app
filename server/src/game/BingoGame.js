@@ -157,11 +157,11 @@ export class BingoGame {
     const player = this.players.get(playerId);
     if (!player) return false;
 
-    // Verificar cada fila del cartón
+    // Verificar cada fila del cartón (Bingo 90: 5 números por fila)
     for (const row of player.card) {
-      const rowNumbers = row.filter(n => n !== 0); // Ignorar casilla libre
+      const rowNumbers = row.filter(n => n !== null); // Ignorar casillas vacías
       const allMarked = rowNumbers.every(n => player.markedNumbers.includes(n));
-      if (allMarked) return true;
+      if (allMarked && rowNumbers.length === 5) return true;
     }
     return false;
   }
@@ -175,10 +175,10 @@ export class BingoGame {
     const player = this.players.get(playerId);
     if (!player) return false;
 
-    // Todos los números del cartón (excepto 0) deben estar marcados
+    // Todos los números del cartón (15 números) deben estar marcados
     for (const row of player.card) {
       for (const num of row) {
-        if (num !== 0 && !player.markedNumbers.includes(num)) {
+        if (num !== null && !player.markedNumbers.includes(num)) {
           return false;
         }
       }

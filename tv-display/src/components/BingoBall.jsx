@@ -1,16 +1,21 @@
-import { getColumnLetter } from '../../../server/shared/constants.js';
+import { getColumnIndex } from '../../../server/shared/constants.js';
 
-const COLORS = {
-  B: '#e63946',  // Rojo
-  I: '#f4a261',  // Naranja
-  N: '#2a9d8f',  // Verde
-  G: '#264653',  // Azul oscuro
-  O: '#9b5de5'   // Púrpura
-};
+// Colores para las 9 columnas del Bingo 90
+const COLORS = [
+  '#e63946',  // 1-9: Rojo
+  '#f4a261',  // 10-19: Naranja
+  '#2a9d8f',  // 20-29: Verde
+  '#264653',  // 30-39: Azul oscuro
+  '#9b5de5',  // 40-49: Púrpura
+  '#00b4d8',  // 50-59: Azul claro
+  '#e76f51',  // 60-69: Coral
+  '#06d6a0',  // 70-79: Verde menta
+  '#ffd166'   // 80-90: Amarillo
+];
 
 export function BingoBall({ number, size = 'normal', marked = false }) {
-  const letter = getColumnLetter(number);
-  const color = COLORS[letter] || '#666';
+  const colIndex = getColumnIndex(number);
+  const color = COLORS[colIndex] || '#666';
   
   const sizeClass = size === 'large' ? 'ball-large' : 'ball-normal';
 
@@ -20,7 +25,6 @@ export function BingoBall({ number, size = 'normal', marked = false }) {
       style={{ '--ball-color': color }}
     >
       <div className="ball-inner">
-        <span className="ball-letter">{letter}</span>
         <span className="ball-number">{number}</span>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getColumnIndex } from '../../../server/shared/constants.js';
+import { SoundService } from '../services/SoundService';
 
 // Colores para las 9 columnas del Bingo 90
 const COLUMN_COLORS = [
@@ -18,37 +19,71 @@ const COLUMN_COLORS = [
 export function BingoCard({ card, calledNumbers, currentNumber, onMarkNumber, onClaimLine, onClaimBingo }) {
   const [markedNumbers, setMarkedNumbers] = useState(new Set());
 
+  // Inicializar sonido con primera interacción
+  useEffect(() => {
+    const initSound = () => {
+      SoundService.init();
+      document.removeEventListener('touchstart', initSound);
+      document.removeEventListener('click', initSound);
+    };
+    document.addEventListener('touchstart', initSound);
+    document.addEventListener('click', initSound);
+    return () => {
+      document.removeEventListener('touchstart', initSound);
+      document.removeEventListener('click', initSound);
+    };
+  }, []);
+
   const handleCellClick = (number) => {
     if (number === null) return; // Casilla vacía
-    if (!calledNumbers.includes(number)) return; // Número no cantado
+    if (!calledNumbers.includes(number)) {
+      // Intentó marcar un número no cantado
+      SoundService.playError();
+      SoundService.vibrate([100]);
+      return;
+    }
 
     setMarkedNumbers(prev => {
       const newSet = new Set(prev);
       if (newSet.has(number)) {
         newSet.delete(number);
+        SoundService.playClick();
       } else {
         newSet.add(number);
+        SoundService.playMatchWithVibration();
         onMarkNumber(number);
       }
       return newSet;
     });
   };
 
-  // Vibrar cuando sale un número que está en mi cartón
+  // Sonido y vibración cuando sale un número que está en mi cartón
   useEffect(() => {
     if (currentNumber && card) {
       // Verificar si el número está en mi cartón
       for (const row of card) {
         if (row.includes(currentNumber)) {
-          // Vibrar más fuerte si el número está en mi cartón
-          if (navigator.vibrate) {
-            navigator.vibrate([100, 50, 100]);
-          }
+          // ¡El número está en mi cartón!
+          SoundService.playNumberMatch();
+          SoundService.vibrate([100, 50, 100]);
           break;
         }
       }
     }
   }, [currentNumber, card]);
+
+  // Handler para reclamar línea
+  const handleClaimLine = () => {
+    SoundService.playLineWin();
+    SoundService.vibrate([100, 50, 100, 50, 100]);
+    onClaimLine();
+  };
+
+  // Handler para reclamar bingo
+  const handleClaimBingo = () => {
+    SoundService.playBingoWithVibration();
+    onClaimBingo();
+  };
 
   const getNumberColor = (num) => {
     if (num === null) return '#666';
@@ -115,10 +150,10 @@ export function BingoCard({ card, calledNumbers, currentNumber, onMarkNumber, on
 
       {/* Botones de reclamar */}
       <div className="claim-buttons">
-        <button className="btn-claim btn-line" onClick={onClaimLine}>
+        <button className="btn-claim btn-line" onClick={handleClaimLine}>
           📏 ¡LÍNEA!
         </button>
-        <button className="btn-claim btn-bingo" onClick={onClaimBingo}>
+        <button className="btn-claim btn-bingo" onClick={handleClaimBingo}>
           🎉 ¡BINGO!
         </button>
       </div>

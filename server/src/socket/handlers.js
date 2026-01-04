@@ -4,6 +4,7 @@
  */
 
 import { SOCKET_EVENTS } from '../../shared/constants.js';
+import { db } from '../database/Database.js';
 
 /**
  * Configura los manejadores de eventos de Socket.io
@@ -151,6 +152,10 @@ export function setupSocketHandlers(io, gameManager) {
 
         if (hasLine && !game.winners.line) {
           game.winners.line = { id: socket.id, name: player.name };
+          
+          // Registrar ganador en BD
+          db.saveWinner(socket.gameId, socket.id, player.name, 'line');
+          
           io.to(socket.gameId).emit(SOCKET_EVENTS.LINE_WINNER, {
             player: { id: socket.id, name: player.name }
           });
@@ -178,6 +183,10 @@ export function setupSocketHandlers(io, gameManager) {
 
         if (hasBingo && !game.winners.bingo) {
           game.winners.bingo = { id: socket.id, name: player.name };
+          
+          // Registrar ganador en BD
+          db.saveWinner(socket.gameId, socket.id, player.name, 'bingo');
+          
           io.to(socket.gameId).emit(SOCKET_EVENTS.BINGO_WINNER, {
             player: { id: socket.id, name: player.name }
           });

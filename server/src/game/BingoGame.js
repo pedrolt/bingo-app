@@ -1,11 +1,12 @@
 /**
  * 🎱 BingoGame
- * Representa una partida de Bingo
+ * Representa una partida de Bingo con persistencia
  */
 
 import { v4 as uuidv4 } from 'uuid';
 import { generateCard } from './CardGenerator.js';
 import { GAME_STATES, BINGO_CONFIG } from '../../shared/constants.js';
+import { db } from '../database/Database.js';
 
 export class BingoGame {
   /**
@@ -16,6 +17,8 @@ export class BingoGame {
     this.id = id;
     this.state = GAME_STATES.WAITING;
     this.createdAt = new Date();
+    this.startedAt = null;
+    this.finishedAt = null;
     
     // Configuración
     this.config = {
@@ -38,6 +41,37 @@ export class BingoGame {
       line: null,
       bingo: null
     };
+  }
+
+  /**
+   * Crea una instancia desde datos de la base de datos
+   * @param {object} data - Datos de la BD
+   * @returns {BingoGame}
+   */
+  static fromDatabase(data) {
+    const game = new BingoGame(data.id, data.config);
+    game.state = data.state;
+    game.availableNumbers = data.availableNumbers;
+    game.calledNumbers = data.calledNumbers;
+    game.currentNumber = data.currentNumber;
+    game.createdAt = data.createdAt;
+    game.startedAt = data.startedAt;
+    game.finishedAt = data.finishedAt;
+    return game;
+  }
+
+  /**
+   * Restaura un jugador desde la base de datos
+   * @param {object} playerData - Datos del jugador
+   */
+  restorePlayer(playerData) {
+    this.players.set(playerData.id, {
+      id: playerData.id,
+      name: playerData.name,
+      card: playerData.card,
+      markedNumbers: playerData.markedNumbers,
+      joinedAt: playerData.joinedAt
+    });
   }
 
   /**
@@ -81,6 +115,10 @@ export class BingoGame {
     };
     
     this.players.set(socketId, player);
+    
+    // Persistir jugador en BD
+    db.savePlayer(player, this.id);
+    
     console.log(`👤 Jugador "${player.name}" se unió a la partida ${this.id}`);
     return player;
   }
@@ -94,6 +132,9 @@ export class BingoGame {
     if (player) {
       console.log(`👤 Jugador "${player.name}" salió de la partida ${this.id}`);
       this.players.delete(socketId);
+      
+      // Eliminar de BD
+      db.deletePlayer(socketId);
     }
   }
 
@@ -105,6 +146,11 @@ export class BingoGame {
       throw new Error('La partida ya ha comenzado');
     }
     this.state = GAME_STATES.PLAYING;
+    this.startedAt = new Date();
+    
+    // Persistir cambio de estado
+    db.updateGame(this);
+    
     console.log(`🎮 Partida ${this.id} iniciada`);
   }
 
@@ -119,11 +165,16 @@ export class BingoGame {
     
     if (this.availableNumbers.length === 0) {
       this.state = GAME_STATES.FINISHED;
+      this.finishedAt = new Date();
+      db.updateGame(this);
       return null;
     }
 
     this.currentNumber = this.availableNumbers.pop();
     this.calledNumbers.push(this.currentNumber);
+    
+    // Persistir estado del juego
+    db.updateGame(this);
     
     console.log(`🔢 Número cantado: ${this.currentNumber}`);
     return this.currentNumber;
@@ -144,6 +195,9 @@ export class BingoGame {
 
     if (!player.markedNumbers.includes(number)) {
       player.markedNumbers.push(number);
+      
+      // Persistir números marcados
+      db.updatePlayerMarkedNumbers(playerId, player.markedNumbers);
     }
     return true;
   }

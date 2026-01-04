@@ -28,6 +28,9 @@ const io = new Server(httpServer, {
 // Instancia del gestor de juegos
 const gameManager = new GameManager();
 
+// Inicializar GameManager con persistencia
+await gameManager.init();
+
 // Configurar manejadores de Socket
 setupSocketHandlers(io, gameManager);
 
@@ -41,6 +44,24 @@ app.get('/', (req, res) => {
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Endpoint para estadísticas
+app.get('/api/stats', (req, res) => {
+  res.json(gameManager.getStats());
+});
+
+// Manejar cierre graceful
+process.on('SIGINT', () => {
+  console.log('\n🛑 Cerrando servidor...');
+  gameManager.shutdown();
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  console.log('\n🛑 Cerrando servidor...');
+  gameManager.shutdown();
+  process.exit(0);
 });
 
 // Puerto del servidor

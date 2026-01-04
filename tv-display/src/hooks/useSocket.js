@@ -8,6 +8,7 @@ export function useSocket(handlers = {}) {
   const [socket, setSocket] = useState(null);
   const [connected, setConnected] = useState(false);
   const [gameId, setGameId] = useState(null);
+  const [autoMode, setAutoMode] = useState({ enabled: false, interval: 5000 });
 
   useEffect(() => {
     const newSocket = io(SERVER_URL, {
@@ -47,6 +48,12 @@ export function useSocket(handlers = {}) {
 
     newSocket.on(SOCKET_EVENTS.BINGO_WINNER, (data) => {
       handlers.onBingoWinner?.(data);
+    });
+
+    // Eventos de modo automático
+    newSocket.on(SOCKET_EVENTS.AUTO_MODE_CHANGED, (data) => {
+      setAutoMode(data);
+      handlers.onAutoModeChanged?.(data);
     });
 
     setSocket(newSocket);
@@ -89,12 +96,51 @@ export function useSocket(handlers = {}) {
     });
   }, [socket]);
 
+  // Funciones de modo automático
+  const startAutoMode = useCallback((interval = 5000) => {
+    if (!socket) return;
+    
+    socket.emit(SOCKET_EVENTS.AUTO_MODE_START, { interval }, (response) => {
+      if (response.success) {
+        setAutoMode({ enabled: true, interval: response.interval });
+      } else {
+        console.error('Error al activar modo automático:', response.error);
+      }
+    });
+  }, [socket]);
+
+  const stopAutoMode = useCallback(() => {
+    if (!socket) return;
+    
+    socket.emit(SOCKET_EVENTS.AUTO_MODE_STOP, (response) => {
+      if (response.success) {
+        setAutoMode(prev => ({ ...prev, enabled: false }));
+      } else {
+        console.error('Error al desactivar modo automático:', response.error);
+      }
+    });
+  }, [socket]);
+
+  const setAutoInterval = useCallback((interval) => {
+    if (!socket) return;
+    
+    socket.emit(SOCKET_EVENTS.AUTO_MODE_SET_INTERVAL, { interval }, (response) => {
+      if (response.success) {
+        setAutoMode(prev => ({ ...prev, interval: response.interval }));
+      }
+    });
+  }, [socket]);
+
   return {
     socket,
     connected,
     gameId,
+    autoMode,
     createGame,
     startGame,
-    callNumber
+    callNumber,
+    startAutoMode,
+    stopAutoMode,
+    setAutoInterval
   };
 }

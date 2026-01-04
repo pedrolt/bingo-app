@@ -120,6 +120,87 @@ export function setupSocketHandlers(io, gameManager) {
       }
     });
 
+    // ==========================================
+    // MODO AUTOMÁTICO
+    // ==========================================
+
+    /**
+     * Activar modo automático (desde TV)
+     */
+    socket.on(SOCKET_EVENTS.AUTO_MODE_START, ({ interval }, callback) => {
+      try {
+        const game = gameManager.getGame(socket.gameId);
+        if (!game) {
+          return callback({ success: false, error: 'Partida no encontrada' });
+        }
+
+        const success = game.startAutoMode(interval, (number, calledNumbers) => {
+          // Emitir número a todos los jugadores
+          io.to(socket.gameId).emit(SOCKET_EVENTS.NUMBER_CALLED, {
+            number,
+            calledNumbers
+          });
+        });
+
+        if (success) {
+          io.to(socket.gameId).emit(SOCKET_EVENTS.AUTO_MODE_CHANGED, {
+            enabled: true,
+            interval: game.autoMode.interval
+          });
+        }
+
+        callback({ success, interval: game.autoMode.interval });
+      } catch (error) {
+        callback({ success: false, error: error.message });
+      }
+    });
+
+    /**
+     * Desactivar modo automático (desde TV)
+     */
+    socket.on(SOCKET_EVENTS.AUTO_MODE_STOP, (callback) => {
+      try {
+        const game = gameManager.getGame(socket.gameId);
+        if (!game) {
+          return callback({ success: false, error: 'Partida no encontrada' });
+        }
+
+        game.stopAutoMode();
+
+        io.to(socket.gameId).emit(SOCKET_EVENTS.AUTO_MODE_CHANGED, {
+          enabled: false,
+          interval: game.autoMode.interval
+        });
+
+        callback({ success: true });
+      } catch (error) {
+        callback({ success: false, error: error.message });
+      }
+    });
+
+    /**
+     * Cambiar intervalo del modo automático (desde TV)
+     */
+    socket.on(SOCKET_EVENTS.AUTO_MODE_SET_INTERVAL, ({ interval }, callback) => {
+      try {
+        const game = gameManager.getGame(socket.gameId);
+        if (!game) {
+          return callback({ success: false, error: 'Partida no encontrada' });
+        }
+
+        const newInterval = game.setAutoInterval(interval);
+
+        io.to(socket.gameId).emit(SOCKET_EVENTS.AUTO_MODE_CHANGED, {
+          enabled: game.autoMode.enabled,
+          interval: newInterval
+        });
+
+        callback({ success: true, interval: newInterval });
+      } catch (error) {
+        callback({ success: false, error: error.message });
+      }
+    });
+
     /**
      * Marcar número en cartón (desde móvil)
      */
@@ -153,6 +234,15 @@ export function setupSocketHandlers(io, gameManager) {
         if (hasLine && !game.winners.line) {
           game.winners.line = { id: socket.id, name: player.name };
           
+          // Detener modo automático si está activo
+          if (game.autoMode.enabled) {
+            game.stopAutoMode();
+            io.to(socket.gameId).emit(SOCKET_EVENTS.AUTO_MODE_CHANGED, {
+              enabled: false,
+              interval: game.autoMode.interval
+            });
+          }
+          
           // Registrar ganador en BD
           db.saveWinner(socket.gameId, socket.id, player.name, 'line');
           
@@ -183,6 +273,15 @@ export function setupSocketHandlers(io, gameManager) {
 
         if (hasBingo && !game.winners.bingo) {
           game.winners.bingo = { id: socket.id, name: player.name };
+          
+          // Detener modo automático si está activo
+          if (game.autoMode.enabled) {
+            game.stopAutoMode();
+            io.to(socket.gameId).emit(SOCKET_EVENTS.AUTO_MODE_CHANGED, {
+              enabled: false,
+              interval: game.autoMode.interval
+            });
+          }
           
           // Registrar ganador en BD
           db.saveWinner(socket.gameId, socket.id, player.name, 'bingo');

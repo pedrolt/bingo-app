@@ -37,6 +37,9 @@ bingo-app/
 - 🎵 **Efectos de sonido**: Audio generado con Web Audio API
 - 📲 **Código QR**: Unirse a partidas escaneando desde el móvil
 - 📳 **Vibración táctil**: Feedback háptico en móviles al marcar números
+- 🤖 **Modo Automático**: Cantar números automáticamente cada X segundos
+- 🏆 **Banner de Línea**: Muestra en TV quién ganó la línea durante el juego
+- 🎉 **Pantalla de Victoria**: Confeti y celebración al ganar bingo
 
 ## 🎯 Formato Bingo 90 (Europeo)
 
@@ -132,6 +135,15 @@ En la esquina superior derecha de la pantalla TV:
 - 🔊 Activar/desactivar voz sintética
 - 🎤 Probar que el audio funciona
 
+## 🤖 Modo Automático
+
+El juego incluye un modo automático que permite cantar números sin intervención manual:
+
+1. Durante una partida activa, haz clic en **"Modo Automático"**
+2. Los números se cantarán automáticamente cada 5 segundos
+3. El modo se **detiene automáticamente** cuando alguien canta línea o bingo
+4. También puedes detenerlo manualmente haciendo clic en **"Detener"**
+
 ## 📡 Eventos WebSocket
 
 | Evento | Descripción |
@@ -143,6 +155,7 @@ En la esquina superior derecha de la pantalla TV:
 | `game:mark-number` | Marcar número en cartón |
 | `game:claim-line` | Reclamar línea |
 | `game:claim-bingo` | Reclamar bingo |
+| `game:auto-mode` | Activar/desactivar modo automático |
 
 ## 📜 Licencia
 

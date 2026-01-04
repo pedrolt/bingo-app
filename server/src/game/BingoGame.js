@@ -41,6 +41,13 @@ export class BingoGame {
       line: null,
       bingo: null
     };
+
+    // Modo automático
+    this.autoMode = {
+      enabled: false,
+      interval: 5000, // 5 segundos por defecto
+      timerId: null
+    };
   }
 
   /**
@@ -252,7 +259,11 @@ export class BingoGame {
       calledNumbers: this.calledNumbers,
       currentNumber: this.currentNumber,
       remainingNumbers: this.availableNumbers.length,
-      createdAt: this.createdAt
+      createdAt: this.createdAt,
+      autoMode: {
+        enabled: this.autoMode.enabled,
+        interval: this.autoMode.interval
+      }
     };
   }
 
@@ -270,7 +281,79 @@ export class BingoGame {
       })),
       calledNumbers: this.calledNumbers,
       currentNumber: this.currentNumber,
-      winners: this.winners
+      winners: this.winners,
+      autoMode: {
+        enabled: this.autoMode.enabled,
+        interval: this.autoMode.interval
+      }
     };
+  }
+
+  // ==========================================
+  // MODO AUTOMÁTICO
+  // ==========================================
+
+  /**
+   * Activa el modo automático
+   * @param {number} interval - Intervalo en milisegundos
+   * @param {function} onNumberCalled - Callback cuando se canta un número
+   */
+  startAutoMode(interval, onNumberCalled) {
+    if (this.state !== GAME_STATES.PLAYING) {
+      return false;
+    }
+
+    this.autoMode.enabled = true;
+    this.autoMode.interval = interval || this.autoMode.interval;
+
+    // Limpiar timer anterior si existe
+    if (this.autoMode.timerId) {
+      clearInterval(this.autoMode.timerId);
+    }
+
+    // Crear nuevo timer
+    this.autoMode.timerId = setInterval(() => {
+      if (this.state !== GAME_STATES.PLAYING || !this.autoMode.enabled) {
+        this.stopAutoMode();
+        return;
+      }
+
+      const number = this.callNextNumber();
+      if (number === null) {
+        this.stopAutoMode();
+        return;
+      }
+
+      if (onNumberCalled) {
+        onNumberCalled(number, this.calledNumbers);
+      }
+    }, this.autoMode.interval);
+
+    console.log(`🤖 Modo automático activado: ${this.autoMode.interval}ms`);
+    return true;
+  }
+
+  /**
+   * Desactiva el modo automático
+   */
+  stopAutoMode() {
+    this.autoMode.enabled = false;
+    
+    if (this.autoMode.timerId) {
+      clearInterval(this.autoMode.timerId);
+      this.autoMode.timerId = null;
+    }
+
+    console.log(`🤖 Modo automático desactivado`);
+    return true;
+  }
+
+  /**
+   * Cambia el intervalo del modo automático
+   * @param {number} interval - Nuevo intervalo en ms
+   */
+  setAutoInterval(interval) {
+    this.autoMode.interval = Math.max(2000, Math.min(30000, interval)); // Entre 2s y 30s
+    return this.autoMode.interval;
   }
 }

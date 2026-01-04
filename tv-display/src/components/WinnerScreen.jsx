@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { useEffect } from 'react';
 
-export function WinnerScreen({ winner, onNewGame }) {
+export function WinnerScreen({ winner, lineWinner, onNewGame }) {
   useEffect(() => {
     // Lanzar confeti
     const duration = 3000;
@@ -51,6 +51,13 @@ export function WinnerScreen({ winner, onNewGame }) {
         </motion.div>
         
         <p className="winner-message">¡Felicidades!</p>
+
+        {/* Mostrar también el ganador de línea si existe */}
+        {lineWinner && (
+          <div className="line-winner-info">
+            <span>📏 Línea: <strong>{lineWinner.name}</strong></span>
+          </div>
+        )}
 
         <button className="btn-new-game" onClick={onNewGame}>
           🎮 Nueva Partida

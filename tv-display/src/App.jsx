@@ -11,6 +11,7 @@ function App() {
   const [gameData, setGameData] = useState(null);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [lineWinner, setLineWinner] = useState(null);
   
   // Actualizar estado de voz en el servicio
   const toggleVoice = () => {
@@ -26,13 +27,14 @@ function App() {
     SoundService.setEnabled(newState);
   };
   
-  const { socket, connected, gameId, createGame, startGame, callNumber } = useSocket({
+  const { socket, connected, gameId, autoMode, createGame, startGame, callNumber, startAutoMode, stopAutoMode, setAutoInterval } = useSocket({
     onGameCreated: (data) => {
       setGameData(data);
       SoundService.playClick();
     },
     onGameStarted: () => {
       setGameState('playing');
+      setLineWinner(null); // Reset al iniciar
       SoundService.playGameStart();
       speechService.announceGameStart();
     },
@@ -53,6 +55,8 @@ function App() {
       speechService.announceBingoWinner(data.player.name);
     },
     onLineWinner: (data) => {
+      // Guardar ganador de línea para mostrar en pantalla
+      setLineWinner(data.player);
       SoundService.playLineWin();
       speechService.announceLineWinner(data.player.name);
     },
@@ -62,6 +66,9 @@ function App() {
         playersCount: data.playersCount
       }));
       SoundService.playPlayerJoined();
+    },
+    onAutoModeChanged: (data) => {
+      console.log('🤖 Modo automático:', data.enabled ? 'activado' : 'desactivado');
     }
   });
 
@@ -118,15 +125,22 @@ function App() {
         <GameBoard
           gameData={gameData}
           onCallNumber={handleCallNumber}
+          autoMode={autoMode}
+          onStartAuto={startAutoMode}
+          onStopAuto={stopAutoMode}
+          onSetInterval={setAutoInterval}
+          lineWinner={lineWinner}
         />
       )}
       
       {gameState === 'finished' && (
         <WinnerScreen
           winner={gameData?.winner}
+          lineWinner={lineWinner}
           onNewGame={() => {
             setGameState('waiting');
             setGameData(null);
+            setLineWinner(null);
           }}
         />
       )}

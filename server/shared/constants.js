@@ -59,6 +59,12 @@ export const SOCKET_EVENTS = {
   NUMBER_CALLED: 'game:number-called',
   MARK_NUMBER: 'game:mark-number',
   
+  // Modo automático
+  AUTO_MODE_START: 'game:auto-start',
+  AUTO_MODE_STOP: 'game:auto-stop',
+  AUTO_MODE_CHANGED: 'game:auto-changed',
+  AUTO_MODE_SET_INTERVAL: 'game:auto-interval',
+  
   // Premios
   CLAIM_LINE: 'game:claim-line',
   CLAIM_BINGO: 'game:claim-bingo',

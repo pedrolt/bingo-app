@@ -185,11 +185,11 @@ class DatabaseService {
   // ==========================================
 
   /**
-   * Guarda un nuevo jugador
+   * Guarda un nuevo jugador (o reemplaza si ya existe)
    */
   savePlayer(player, gameId) {
     const stmt = this.db.prepare(`
-      INSERT INTO players (id, game_id, name, card, marked_numbers, joined_at)
+      INSERT OR REPLACE INTO players (id, game_id, name, card, marked_numbers, joined_at)
       VALUES (?, ?, ?, ?, ?, ?)
     `);
     

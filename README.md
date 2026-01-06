@@ -33,6 +33,7 @@ bingo-app/
 - 📱 **App Móvil PWA**: Cartones interactivos en dispositivos móviles
 - 🔄 **Tiempo real**: Sincronización via WebSocket (Socket.io)
 - 💾 **Persistencia**: SQLite para guardar partidas y restaurar al reiniciar
+- 🔁 **Reconexión automática**: Los jugadores pueden reconectarse sin perder su cartón
 - 🎤 **Síntesis de voz**: Los números se cantan en voz alta (Web Speech API)
 - 🎵 **Efectos de sonido**: Audio generado con Web Audio API
 - 📲 **Código QR**: Unirse a partidas escaneando desde el móvil
@@ -72,6 +73,7 @@ La aplicación utiliza SQLite para persistir el estado de las partidas:
 - **Jugadores**: Cartones y números marcados persistidos
 - **Ganadores**: Historial de ganadores (línea y bingo)
 - **Restauración**: Al reiniciar el servidor, las partidas activas se restauran
+- **Transacciones**: Operaciones atómicas para garantizar integridad de datos
 
 ### API REST
 
@@ -80,6 +82,22 @@ La aplicación utiliza SQLite para persistir el estado de las partidas:
 | `GET /` | Estado del servidor |
 | `GET /api/health` | Health check |
 | `GET /api/stats` | Estadísticas (partidas, jugadores, ganadores) |
+
+## 🔁 Reconexión de Jugadores
+
+Si un jugador se desconecta (cierra la app, pierde conexión, etc.), puede reconectarse automáticamente:
+
+- **Token de sesión**: Se guarda en localStorage al unirse a una partida
+- **Reconexión automática**: Al volver a abrir la app, se intenta reconectar automáticamente
+- **Tiempo límite**: 30 minutos para reconectarse antes de perder la sesión
+- **Estado preservado**: Cartón y números marcados se mantienen intactos
+- **Reconexión por nombre**: Si falla el token, se intenta reconectar por nombre de jugador
+
+### Flujo de reconexión:
+1. Jugador se une → recibe token de reconexión
+2. Se desconecta → servidor lo marca como "desconectado"
+3. Vuelve a abrir la app → reconexión automática con su cartón
+4. Si pasan 30 minutos → sesión eliminada
 
 ## 📋 Requisitos
 
@@ -150,12 +168,15 @@ El juego incluye un modo automático que permite cantar números sin intervenci�
 |--------|-------------|
 | `game:create` | TV crea nueva partida |
 | `game:join` | Jugador se une |
+| `game:reconnect` | Jugador intenta reconectarse |
 | `game:start` | Iniciar partida |
 | `game:call-number` | Sacar número |
 | `game:mark-number` | Marcar número en cartón |
 | `game:claim-line` | Reclamar línea |
 | `game:claim-bingo` | Reclamar bingo |
 | `game:auto-mode` | Activar/desactivar modo automático |
+| `player:disconnected` | Jugador se desconecta (puede reconectarse) |
+| `player:reconnected` | Jugador reconectado exitosamente |
 
 ## 📜 Licencia
 

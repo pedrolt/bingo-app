@@ -16,8 +16,16 @@ const COLUMN_COLORS = [
   '#ffd166'   // 80-90
 ];
 
-export function BingoCard({ card, calledNumbers, currentNumber, onMarkNumber, onClaimLine, onClaimBingo }) {
-  const [markedNumbers, setMarkedNumbers] = useState(new Set());
+export function BingoCard({ card, calledNumbers, currentNumber, markedNumbers: initialMarked, onMarkNumber, onClaimLine, onClaimBingo }) {
+  // Inicializar con números previamente marcados (reconexión)
+  const [markedNumbers, setMarkedNumbers] = useState(() => new Set(initialMarked || []));
+
+  // Actualizar cuando cambian los números iniciales (reconexión)
+  useEffect(() => {
+    if (initialMarked && initialMarked.length > 0) {
+      setMarkedNumbers(new Set(initialMarked));
+    }
+  }, [initialMarked]);
 
   // Inicializar sonido con primera interacción
   useEffect(() => {

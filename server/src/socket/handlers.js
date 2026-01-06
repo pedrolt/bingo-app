@@ -1,9 +1,9 @@
 /**
  * 🔌 Socket Handlers
- * Manejadores de eventos de Socket.io
+ * Manejadores de eventos de Socket.io con soporte para reconexión
  */
 
-import { SOCKET_EVENTS } from '../../shared/constants.js';
+import { SOCKET_EVENTS, GAME_STATES } from '../../shared/constants.js';
 import { db } from '../database/Database.js';
 
 /**
@@ -38,34 +38,126 @@ export function setupSocketHandlers(io, gameManager) {
 
     /**
      * Unirse a partida (desde móvil)
+     * Ahora también verifica si el jugador puede reconectarse
      */
-    socket.on(SOCKET_EVENTS.JOIN_GAME, ({ gameId, playerName }, callback) => {
+    socket.on(SOCKET_EVENTS.JOIN_GAME, ({ gameId, playerName, reconnectToken }, callback) => {
       try {
         const game = gameManager.getGame(gameId);
         if (!game) {
           return callback({ success: false, error: 'Partida no encontrada' });
         }
 
-        const player = game.addPlayer(socket.id, playerName);
+        let player;
+        let isReconnection = false;
+
+        // Intentar reconexión si se proporciona token o nombre existe
+        if (reconnectToken) {
+          player = game.reconnectPlayerByToken(reconnectToken, socket.id);
+          isReconnection = !!player;
+        }
+        
+        // Fallback: reconectar por nombre si existe un jugador desconectado con ese nombre
+        if (!player && playerName) {
+          player = game.reconnectPlayerByName(playerName, socket.id);
+          isReconnection = !!player;
+        }
+
+        // Si no es reconexión, crear nuevo jugador
+        if (!player) {
+          player = game.addPlayer(socket.id, playerName);
+        }
+        
         socket.join(gameId);
         socket.gameId = gameId;
         socket.playerId = player.id;
 
-        // Notificar a la TV
-        io.to(gameId).emit(SOCKET_EVENTS.PLAYER_JOINED, {
-          player: { id: player.id, name: player.name },
-          playersCount: game.players.size
-        });
+        // Notificar evento correspondiente
+        if (isReconnection) {
+          io.to(gameId).emit(SOCKET_EVENTS.PLAYER_RECONNECTED, {
+            player: { id: player.id, name: player.name },
+            playersCount: game.getConnectedPlayersCount()
+          });
+        } else {
+          io.to(gameId).emit(SOCKET_EVENTS.PLAYER_JOINED, {
+            player: { id: player.id, name: player.name },
+            playersCount: game.getConnectedPlayersCount()
+          });
+        }
 
         callback({ 
-          success: true, 
+          success: true,
+          isReconnection,
           player: {
             id: player.id,
             name: player.name,
-            card: player.card
+            card: player.card,
+            markedNumbers: player.markedNumbers || [],
+            reconnectToken: player.reconnectToken
           },
           gameState: game.getInfo()
         });
+      } catch (error) {
+        callback({ success: false, error: error.message });
+      }
+    });
+
+    /**
+     * Reconexión explícita (desde móvil)
+     */
+    socket.on(SOCKET_EVENTS.RECONNECT, ({ gameId, reconnectToken, playerName }, callback) => {
+      try {
+        const game = gameManager.getGame(gameId);
+        if (!game) {
+          return callback({ success: false, error: 'Partida no encontrada' });
+        }
+
+        // Verificar que la partida no haya terminado
+        if (game.state === GAME_STATES.FINISHED) {
+          return callback({ success: false, error: 'La partida ha finalizado' });
+        }
+
+        let player = null;
+
+        // Intentar reconectar por token
+        if (reconnectToken) {
+          player = game.reconnectPlayerByToken(reconnectToken, socket.id);
+        }
+
+        // Fallback: reconectar por nombre
+        if (!player && playerName) {
+          player = game.reconnectPlayerByName(playerName, socket.id);
+        }
+
+        if (!player) {
+          return callback({ 
+            success: false, 
+            error: 'No se encontró una sesión anterior. Por favor, únete como nuevo jugador.' 
+          });
+        }
+
+        socket.join(gameId);
+        socket.gameId = gameId;
+        socket.playerId = player.id;
+
+        // Notificar a todos
+        io.to(gameId).emit(SOCKET_EVENTS.PLAYER_RECONNECTED, {
+          player: { id: player.id, name: player.name },
+          playersCount: game.getConnectedPlayersCount()
+        });
+
+        callback({
+          success: true,
+          player: {
+            id: player.id,
+            name: player.name,
+            card: player.card,
+            markedNumbers: player.markedNumbers || [],
+            reconnectToken: player.reconnectToken
+          },
+          gameState: game.getInfo()
+        });
+
+        console.log(`🔄 Jugador "${player.name}" reconectado a ${gameId}`);
       } catch (error) {
         callback({ success: false, error: error.message });
       }
@@ -304,6 +396,7 @@ export function setupSocketHandlers(io, gameManager) {
 
     /**
      * Desconexión
+     * Ahora marca al jugador como desconectado en lugar de eliminarlo
      */
     socket.on('disconnect', () => {
       console.log(`🔌 Cliente desconectado: ${socket.id}`);
@@ -312,20 +405,33 @@ export function setupSocketHandlers(io, gameManager) {
         const game = gameManager.getGame(socket.gameId);
         if (game) {
           if (socket.isTV) {
-            // Si la TV se desconecta, notificar a los jugadores
+            // Si la TV se desconecta, notificar a los jugadores pero mantener la partida
             io.to(socket.gameId).emit(SOCKET_EVENTS.GAME_ENDED, {
               reason: 'La pantalla principal se ha desconectado'
             });
           } else {
-            // Si un jugador se desconecta
-            game.removePlayer(socket.id);
-            io.to(socket.gameId).emit(SOCKET_EVENTS.PLAYER_LEFT, {
-              playerId: socket.id,
-              playersCount: game.players.size
-            });
+            // Si un jugador se desconecta, marcarlo como desconectado (no eliminar)
+            const disconnectedPlayer = game.disconnectPlayer(socket.id);
+            
+            if (disconnectedPlayer) {
+              // Notificar que el jugador se desconectó (pero puede reconectarse)
+              io.to(socket.gameId).emit(SOCKET_EVENTS.PLAYER_DISCONNECTED, {
+                player: { id: socket.id, name: disconnectedPlayer.name },
+                playersCount: game.getConnectedPlayersCount(),
+                canReconnect: true
+              });
+            }
           }
         }
       }
     });
   });
+
+  // Limpiar jugadores desconectados periódicamente (cada 5 minutos)
+  setInterval(() => {
+    const cleaned = db.cleanDisconnectedPlayers(30); // 30 minutos de timeout
+    if (cleaned > 0) {
+      console.log(`🧹 Limpieza automática: ${cleaned} jugadores desconectados eliminados`);
+    }
+  }, 5 * 60 * 1000);
 }

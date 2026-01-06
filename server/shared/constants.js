@@ -25,6 +25,8 @@ export const BINGO_CONFIG = {
   COLS: 9,
   NUMBERS_PER_ROW: 5,
   TOTAL_NUMBERS_PER_CARD: 15,
+  // Tiempo máximo para reconexión (30 minutos)
+  RECONNECT_TIMEOUT_MS: 30 * 60 * 1000,
   // Columnas: cada una cubre un rango de 10 números (excepto la última que tiene 11)
   COLUMNS: [
     { index: 0, min: 1, max: 9 },
@@ -53,6 +55,13 @@ export const SOCKET_EVENTS = {
   // Jugadores
   PLAYER_JOINED: 'player:joined',
   PLAYER_LEFT: 'player:left',
+  PLAYER_DISCONNECTED: 'player:disconnected',
+  PLAYER_RECONNECTED: 'player:reconnected',
+  
+  // Reconexión
+  RECONNECT: 'game:reconnect',
+  RECONNECT_SUCCESS: 'game:reconnect-success',
+  RECONNECT_FAILED: 'game:reconnect-failed',
   
   // Juego
   CALL_NUMBER: 'game:call-number',

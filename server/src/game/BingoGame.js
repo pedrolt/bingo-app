@@ -1,6 +1,6 @@
 /**
  * 🎱 BingoGame
- * Representa una partida de Bingo con persistencia
+ * Representa una partida de Bingo con persistencia y reconexión
  */
 
 import { v4 as uuidv4 } from 'uuid';
@@ -24,12 +24,17 @@ export class BingoGame {
     this.config = {
       maxNumbers: options.maxNumbers || BINGO_CONFIG.MAX_NUMBERS,
       autoMark: options.autoMark !== false,
+      reconnectTimeout: options.reconnectTimeout || BINGO_CONFIG.RECONNECT_TIMEOUT_MS,
       ...options
     };
 
     // Jugadores y cartones
     /** @type {Map<string, object>} */
     this.players = new Map();
+    
+    // Jugadores desconectados (mapa temporal para reconexión rápida)
+    /** @type {Map<string, object>} */
+    this.disconnectedPlayers = new Map();
     
     // Números
     this.availableNumbers = this._initializeNumbers();
@@ -72,13 +77,22 @@ export class BingoGame {
    * @param {object} playerData - Datos del jugador
    */
   restorePlayer(playerData) {
-    this.players.set(playerData.id, {
+    const player = {
       id: playerData.id,
       name: playerData.name,
       card: playerData.card,
       markedNumbers: playerData.markedNumbers,
-      joinedAt: playerData.joinedAt
-    });
+      joinedAt: playerData.joinedAt,
+      isConnected: playerData.isConnected !== false,
+      reconnectToken: playerData.reconnectToken || null
+    };
+    
+    if (player.isConnected) {
+      this.players.set(playerData.id, player);
+    } else {
+      // Jugador desconectado - guardarlo para posible reconexión
+      this.disconnectedPlayers.set(playerData.id, player);
+    }
   }
 
   /**
@@ -107,23 +121,37 @@ export class BingoGame {
   }
 
   /**
+   * Genera un token de reconexión único
+   * @private
+   */
+  _generateReconnectToken() {
+    return Math.random().toString(36).substring(2, 15) + 
+           Math.random().toString(36).substring(2, 15) +
+           Date.now().toString(36);
+  }
+
+  /**
    * Añade un jugador a la partida
    * @param {string} socketId - ID del socket
    * @param {string} name - Nombre del jugador
    * @returns {object} - Información del jugador
    */
   addPlayer(socketId, name) {
+    const reconnectToken = this._generateReconnectToken();
+    
     const player = {
       id: socketId,
       name: name || `Jugador ${this.players.size + 1}`,
       card: generateCard(),
       markedNumbers: [],
-      joinedAt: new Date()
+      joinedAt: new Date(),
+      isConnected: true,
+      reconnectToken
     };
     
     this.players.set(socketId, player);
     
-    // Persistir jugador en BD
+    // Persistir jugador en BD con token de reconexión
     db.savePlayer(player, this.id);
     
     console.log(`👤 Jugador "${player.name}" se unió a la partida ${this.id}`);
@@ -131,18 +159,131 @@ export class BingoGame {
   }
 
   /**
-   * Elimina un jugador de la partida
+   * Marca un jugador como desconectado (NO lo elimina)
+   * Permite reconexión posterior
+   * @param {string} socketId 
+   * @returns {object|null} - Datos del jugador desconectado
+   */
+  disconnectPlayer(socketId) {
+    const player = this.players.get(socketId);
+    if (!player) return null;
+
+    player.isConnected = false;
+    player.disconnectedAt = new Date();
+    
+    // Mover a lista de desconectados
+    this.disconnectedPlayers.set(socketId, player);
+    this.players.delete(socketId);
+    
+    // Marcar como desconectado en BD (genera token si no existe)
+    const token = db.markPlayerDisconnected(socketId);
+    if (token && !player.reconnectToken) {
+      player.reconnectToken = token;
+    }
+    
+    console.log(`📴 Jugador "${player.name}" desconectado de la partida ${this.id} (puede reconectarse)`);
+    return player;
+  }
+
+  /**
+   * Reconecta un jugador usando su token
+   * @param {string} reconnectToken - Token de reconexión
+   * @param {string} newSocketId - Nuevo ID del socket
+   * @returns {object|null} - Datos del jugador reconectado
+   */
+  reconnectPlayerByToken(reconnectToken, newSocketId) {
+    // Buscar en jugadores desconectados locales
+    for (const [oldId, player] of this.disconnectedPlayers) {
+      if (player.reconnectToken === reconnectToken) {
+        return this._performReconnection(oldId, newSocketId, player);
+      }
+    }
+    
+    // Buscar en base de datos
+    const playerData = db.getPlayerByReconnectToken(reconnectToken);
+    if (playerData && playerData.gameId === this.id) {
+      return this._performReconnection(playerData.id, newSocketId, playerData);
+    }
+    
+    return null;
+  }
+
+  /**
+   * Reconecta un jugador por nombre (fallback)
+   * @param {string} playerName - Nombre del jugador
+   * @param {string} newSocketId - Nuevo ID del socket
+   * @returns {object|null} - Datos del jugador reconectado
+   */
+  reconnectPlayerByName(playerName, newSocketId) {
+    // Buscar en jugadores desconectados locales
+    for (const [oldId, player] of this.disconnectedPlayers) {
+      if (player.name.toLowerCase() === playerName.toLowerCase()) {
+        return this._performReconnection(oldId, newSocketId, player);
+      }
+    }
+    
+    // Buscar en base de datos
+    const playerData = db.getPlayerByNameInGame(this.id, playerName);
+    if (playerData) {
+      return this._performReconnection(playerData.id, newSocketId, playerData);
+    }
+    
+    return null;
+  }
+
+  /**
+   * Realiza la reconexión de un jugador
+   * @private
+   */
+  _performReconnection(oldSocketId, newSocketId, playerData) {
+    // Actualizar ID del jugador
+    const player = {
+      ...playerData,
+      id: newSocketId,
+      isConnected: true,
+      disconnectedAt: null
+    };
+    
+    // Actualizar en memoria
+    this.disconnectedPlayers.delete(oldSocketId);
+    this.players.set(newSocketId, player);
+    
+    // Actualizar en base de datos
+    db.updatePlayerId(oldSocketId, newSocketId);
+    db.markPlayerConnected(newSocketId);
+    
+    console.log(`🔄 Jugador "${player.name}" reconectado a la partida ${this.id}`);
+    return player;
+  }
+
+  /**
+   * Elimina un jugador de la partida permanentemente
    * @param {string} socketId 
    */
   removePlayer(socketId) {
-    const player = this.players.get(socketId);
+    const player = this.players.get(socketId) || this.disconnectedPlayers.get(socketId);
     if (player) {
-      console.log(`👤 Jugador "${player.name}" salió de la partida ${this.id}`);
+      console.log(`👤 Jugador "${player.name}" eliminado de la partida ${this.id}`);
       this.players.delete(socketId);
+      this.disconnectedPlayers.delete(socketId);
       
-      // Eliminar de BD
+      // Eliminar de BD permanentemente
       db.deletePlayer(socketId);
     }
+  }
+
+  /**
+   * Obtiene el número total de jugadores (conectados + desconectados)
+   */
+  getTotalPlayersCount() {
+    return this.players.size + this.disconnectedPlayers.size;
+  }
+
+  /**
+   * Obtiene el número de jugadores conectados
+   */
+  getConnectedPlayersCount() {
+    return this.players.size;
   }
 
   /**
@@ -256,6 +397,8 @@ export class BingoGame {
       id: this.id,
       state: this.state,
       playersCount: this.players.size,
+      disconnectedCount: this.disconnectedPlayers.size,
+      totalPlayers: this.getTotalPlayersCount(),
       calledNumbers: this.calledNumbers,
       currentNumber: this.currentNumber,
       remainingNumbers: this.availableNumbers.length,
@@ -272,13 +415,23 @@ export class BingoGame {
    * @returns {object}
    */
   getTVState() {
+    // Incluir jugadores conectados y desconectados
+    const connectedPlayers = Array.from(this.players.values()).map(p => ({
+      id: p.id,
+      name: p.name,
+      isConnected: true
+    }));
+    
+    const disconnectedPlayers = Array.from(this.disconnectedPlayers.values()).map(p => ({
+      id: p.id,
+      name: p.name,
+      isConnected: false
+    }));
+    
     return {
       id: this.id,
       state: this.state,
-      players: Array.from(this.players.values()).map(p => ({
-        id: p.id,
-        name: p.name
-      })),
+      players: [...connectedPlayers, ...disconnectedPlayers],
       calledNumbers: this.calledNumbers,
       currentNumber: this.currentNumber,
       winners: this.winners,

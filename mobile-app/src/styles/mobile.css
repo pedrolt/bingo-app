@@ -373,3 +373,92 @@ body {
   color: var(--bg-primary);
   cursor: pointer;
 }
+
+/* ==========================================
+   Reconnection Styles
+   ========================================== */
+
+.reconnecting-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(90deg, var(--warning), #f39c12);
+  color: var(--bg-primary);
+  text-align: center;
+  padding: 0.8rem;
+  font-weight: bold;
+  z-index: 1000;
+  animation: pulse 1.5s infinite;
+}
+
+.reconnect-error {
+  background: rgba(231, 76, 60, 0.2);
+  border: 1px solid #e74c3c;
+  color: #e74c3c;
+  padding: 1rem;
+  margin: 1rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.reconnecting-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  min-height: 100vh;
+}
+
+.reconnecting-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.reconnecting-content h2 {
+  font-size: 1.8rem;
+  color: var(--text-primary);
+}
+
+.reconnecting-content p {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.btn-cancel-reconnect {
+  margin-top: 1rem;
+  padding: 0.8rem 1.5rem;
+  font-size: 0.9rem;
+  border: 2px solid var(--text-secondary);
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel-reconnect:hover,
+.btn-cancel-reconnect:active {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+}
